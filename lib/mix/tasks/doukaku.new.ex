@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.Doukaku.New do
   use Mix.Task
 
+  @shortdoc "generate `doukaku` solver file and test runner file"
+
   @options [module: :string]
   @aliases [m: :module]
 

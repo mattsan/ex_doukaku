@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.Doukaku.Test do
   use Mix.Task
 
+  @shortdoc "run `doukaku` tests"
+
   @test_runner_module_name "TestRunner"
 
   def run(args) do
