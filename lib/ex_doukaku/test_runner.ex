@@ -8,6 +8,9 @@ defmodule ExDoukaku.TestRunner do
 
     quote do
       @before_compile ExDoukaku.TestRunner
+      import ExDoukaku.TestRunner, only: [test_data: 1]
+
+      @data []
 
       def run(options \\ []) do
         numbers = Keyword.get(options, :numbers, [])
@@ -31,17 +34,25 @@ defmodule ExDoukaku.TestRunner do
 
   defmacro __before_compile__(_) do
     quote do
-      @test_pattern ~r{/\*\s*(\d+)\s*\*/\s*test\s*\(\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)}
-      @test_data @data
-                 |> String.split("\n", trim: true)
-                 |> Enum.map(&Regex.run(@test_pattern, &1))
-                 |> Enum.map(fn [_, number, src, expected] ->
-                   %TestData{number: String.to_integer(number), src: src, expected: expected}
-                 end)
-
       def data do
-        @test_data
+        @data
       end
+    end
+  end
+
+  defmacro test_pattern do
+    quote do
+    end
+  end
+
+  defmacro test_data(text) do
+    quote do
+      @test_pattern ~r{/\*\s*(?<number>\d+)\s*\*/\s*test\s*\(\s*"(?<src>[^"]+)"\s*,\s*"(?<expected>[^"]+)"\s*\)}
+
+      @data unquote(text)
+            |> String.split("\n", trim: true)
+            |> Enum.map(&Regex.named_captures(@test_pattern, &1))
+            |> Enum.map(&TestData.new(String.to_integer(&1["number"]), &1["src"], &1["expected"]))
     end
   end
 
