@@ -1,6 +1,8 @@
 defmodule ExDoukaku.TestRunner do
   use Supervisor
 
+  alias ExDoukaku.TestData
+
   defmacro __using__(opts) do
     [module, fun] = get_in(opts, [:solver])
 
@@ -34,7 +36,7 @@ defmodule ExDoukaku.TestRunner do
                  |> String.split("\n", trim: true)
                  |> Enum.map(&Regex.run(@test_pattern, &1))
                  |> Enum.map(fn [_, number, src, expected] ->
-                   %{number: String.to_integer(number), src: src, expected: expected}
+                   %TestData{number: String.to_integer(number), src: src, expected: expected}
                  end)
 
       def data do
@@ -61,7 +63,7 @@ defmodule ExDoukaku.TestRunner do
     |> Enum.map(&elem(&1, 1))
   end
 
-  def test(%{number: number, src: src, expected: expected}, module, fun) do
+  def test(%TestData{number: number, src: src, expected: expected}, module, fun) do
     result = apply(module, fun, [src])
 
     view =
