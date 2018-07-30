@@ -1,4 +1,6 @@
 defmodule Mix.Tasks.Doukaku.Test.OptionParser do
+  @moduledoc false
+
   @options [
     runner: :string,
     numbers: :string

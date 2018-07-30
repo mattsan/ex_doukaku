@@ -82,6 +82,7 @@ defmodule ExDoukaku.TestRunner do
     {number, result}
   end
 
+  @doc false
   def init(_) do
     children = [
       {Task.Supervisor, name: ExDoukaku.TaskSupervisor}

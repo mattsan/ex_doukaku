@@ -1,4 +1,6 @@
 defmodule Mix.Tasks.Doukaku.New.OptionParser do
+  @moduledoc false
+
   @options [
     module: :string
   ]

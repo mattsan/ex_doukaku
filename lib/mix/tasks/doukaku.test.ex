@@ -4,6 +4,7 @@ defmodule Mix.Tasks.Doukaku.Test do
   alias Mix.Tasks.Doukaku.Test
 
   @shortdoc "run `doukaku` tests"
+
   @test_runner_module_name "TestRunner"
 
   def run(args) do
