@@ -8,15 +8,15 @@ defmodule ExDoukaku.TestRunner do
       @before_compile ExDoukaku.TestRunner
 
       def run(options \\ []) do
-        case options[:numbers] do
-          [] ->
-            test(data())
+        numbers = Keyword.get(options, :numbers, [])
 
-          numbers ->
-            data()
-            |> Enum.filter(&(&1.number in numbers))
-            |> test()
-        end
+        test_data =
+          case numbers do
+            [] -> data()
+            numbers -> data() |> Enum.filter(&(&1.number in numbers))
+          end
+
+        test(test_data)
       end
 
       def test(test_data) do
