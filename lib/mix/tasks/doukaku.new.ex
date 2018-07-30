@@ -1,7 +1,27 @@
 defmodule Mix.Tasks.Doukaku.New do
   use Mix.Task
 
+  import Mix.Generator, only: [embed_template: 2]
+
   @shortdoc "generate `doukaku` solver file and test runner file"
+
+  embed_template(:test_runner, ~S'''
+    defmodule <%= @module_name %>.TestRunner do
+      use ExDoukaku.TestRunner, solver: [<%= @module_name %>.Solver, :solve]
+
+      @data """
+        /* 0 */ test("abc", "abc");
+      """
+    end
+    ''')
+
+  embed_template(:solver, ~S"""
+    defmodule <%= @module_name %>.Solver do
+      def solve(input) do
+        input
+      end
+    end
+    """)
 
   @options [module: :string]
   @aliases [m: :module]
@@ -29,25 +49,6 @@ defmodule Mix.Tasks.Doukaku.New do
 
   defp file_name(app, name), do: "lib/#{app}/#{name}.ex"
 
-  defp file_body(module_name, :test_runner) do
-    """
-    defmodule #{module_name}.TestRunner do
-      use ExDoukaku.TestRunner, solver: [#{module_name}.Solver, :solve]
-
-      @data \"\"\"
-        /* 0 */ test("abc", "abc");
-      \"\"\"
-    end
-    """
-  end
-
-  defp file_body(module_name, :solver) do
-    """
-    defmodule #{module_name}.Solver do
-      def solve(input) do
-        input
-      end
-    end
-    """
-  end
+  defp file_body(module_name, :test_runner), do: test_runner_template(module_name: module_name)
+  defp file_body(module_name, :solver), do: solver_template(module_name: module_name)
 end
