@@ -1,7 +1,9 @@
 defmodule Mix.Tasks.Doukaku.New do
   use Mix.Task
 
-  import Mix.Generator
+  import Mix.Generator, only: [embed_template: 2, create_file: 2]
+
+  alias Mix.Tasks.Doukaku.New
 
   @shortdoc "generate `doukaku` solver file and test runner file"
 
@@ -23,11 +25,8 @@ defmodule Mix.Tasks.Doukaku.New do
   end
   ''')
 
-  @options [module: :string]
-  @aliases [m: :module]
-
   def run(args) do
-    {options, [], []} = OptionParser.parse(args, strict: @options, aliases: @aliases)
+    {:ok, options} = New.OptionParser.parse(args)
 
     app_name = Mix.Project.config()[:app]
 

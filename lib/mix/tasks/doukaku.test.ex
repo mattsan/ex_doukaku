@@ -1,14 +1,15 @@
 defmodule Mix.Tasks.Doukaku.Test do
   use Mix.Task
 
-  @shortdoc "run `doukaku` tests"
+  alias Mix.Tasks.Doukaku.Test
 
+  @shortdoc "run `doukaku` tests"
   @test_runner_module_name "TestRunner"
 
   def run(args) do
     {time, result} =
       :timer.tc(fn ->
-        with {:ok, options} <- parse_options(args),
+        with {:ok, options} <- Test.OptionParser.parse(args),
              {:ok, runner_module} <- get_runner_module(options),
              do: run_test(runner_module, options)
       end)
@@ -22,63 +23,6 @@ defmodule Mix.Tasks.Doukaku.Test do
     end
 
     Mix.Shell.IO.info("\n#{ExUnit.Formatter.format_time(time, nil)}\n")
-  end
-
-  @options [
-    runner: :string,
-    numbers: :string
-  ]
-
-  @aliases [
-    r: :runner,
-    n: :numbers
-  ]
-
-  defp parse_options(args) do
-    with {:ok, options} <- parse_args(args),
-         {:ok, numbers} <- parse_numbers(options[:numbers]),
-         do: {:ok, Keyword.put(options, :numbers, numbers)}
-  end
-
-  defp parse_args(args) do
-    case OptionParser.parse(args, strict: @options, aliases: @aliases) do
-      {options, [], []} ->
-        {:ok, options}
-
-      {_, args, invalid} ->
-        invalid_arguments = Enum.join(Enum.map(invalid, &elem(&1, 0)) ++ args, "','")
-        {:error, message: "invalid arguments '#{invalid_arguments}'"}
-    end
-  end
-
-  defp parse_numbers(numbers_string) do
-    %{numbers: numbers, errors: errors} =
-      case numbers_string do
-        nil ->
-          %{numbers: [], errors: []}
-
-        _ ->
-          numbers_string
-          |> String.split(~r{[ ,]+}, trim: true)
-          |> Enum.reduce(%{numbers: [], errors: []}, fn s, acc ->
-            case Integer.parse(s) do
-              {number, ""} ->
-                %{acc | numbers: [number | acc.numbers]}
-
-              _ ->
-                %{acc | errors: [s | acc.errors]}
-            end
-          end)
-      end
-
-    case errors do
-      [] ->
-        {:ok, Enum.reverse(numbers)}
-
-      _ ->
-        non_integer_values = errors |> Enum.reverse() |> Enum.join("','")
-        {:error, message: "non-integer values '#{non_integer_values}'"}
-    end
   end
 
   defp setup(config) do
