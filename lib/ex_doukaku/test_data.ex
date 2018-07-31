@@ -1,11 +1,13 @@
 defmodule ExDoukaku.TestData do
   defstruct [:number, :src, :expected]
 
+  alias ExDoukaku.TestData
+
   def new do
-    %ExDoukaku.TestData{}
+    %TestData{}
   end
 
   def new(number, src, expected) do
-    %ExDoukaku.TestData{number: number, src: src, expected: expected}
+    %TestData{number: number, src: src, expected: expected}
   end
 end

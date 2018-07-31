@@ -29,6 +29,7 @@ defmodule Mix.Tasks.Doukaku.Test do
   defp setup(config) do
     Mix.Project.get!()
     Mix.Project.compile([], config)
+    Application.start(:poison)
     Application.start(:ex_doukaku)
     Application.start(config[:app])
   end
