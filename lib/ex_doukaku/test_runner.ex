@@ -1,6 +1,4 @@
 defmodule ExDoukaku.TestRunner do
-  use Supervisor
-
   alias ExDoukaku.TestData
 
   defmacro __using__(opts) do
@@ -50,18 +48,5 @@ defmodule ExDoukaku.TestRunner do
             |> Enum.map(&Regex.named_captures(@test_pattern, &1))
             |> Enum.map(&TestData.new(String.to_integer(&1["number"]), &1["src"], &1["expected"]))
     end
-  end
-
-  def start_link(opts) do
-    Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
-  end
-
-  @doc false
-  def init(_) do
-    children = [
-      {Task.Supervisor, name: ExDoukaku.TaskSupervisor}
-    ]
-
-    Supervisor.init(children, strategy: :one_for_one)
   end
 end

@@ -5,7 +5,7 @@ defmodule ExDoukaku.Application do
 
   def start(_type, _args) do
     children = [
-      {ExDoukaku.TestRunner, []}
+      {Task.Supervisor, name: ExDoukaku.TaskSupervisor}
     ]
 
     opts = [strategy: :one_for_one, name: ExDoukaku.Supervisor]
