@@ -21,12 +21,8 @@ defmodule ExDoukaku.TestRunner do
             numbers -> data() |> Enum.filter(&(&1.number in numbers))
           end
 
-        test(test_data)
-      end
-
-      def test(test_data) do
         test_data
-        |> ExDoukaku.TestRunner.test(unquote(module), unquote(fun))
+        |> ExDoukaku.test(unquote(module), unquote(fun))
         |> Enum.to_list()
       end
     end
@@ -58,41 +54,6 @@ defmodule ExDoukaku.TestRunner do
 
   def start_link(opts) do
     Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
-  end
-
-  def test(test_data, module, fun) when is_list(test_data) do
-    opts = [ordered: false, timeout: :infinity]
-
-    Task.Supervisor.async_stream(
-      ExDoukaku.TaskSupervisor,
-      test_data,
-      __MODULE__,
-      :test,
-      [module, fun],
-      opts
-    )
-    |> Enum.map(&elem(&1, 1))
-  end
-
-  def test(%TestData{number: number, src: src, expected: expected}, module, fun) do
-    result = apply(module, fun, [src])
-
-    view =
-      case result do
-        ^expected ->
-          IO.ANSI.format([:green, "passed", :reset])
-
-        actual ->
-          IO.ANSI.format([
-            :red,
-            "failed",
-            :reset,
-            "  input: '#{src}'  expected: '#{expected}'  actual: '#{actual}'"
-          ])
-      end
-
-    :io.format("~4b: ~s~n", [number, view])
-    {number, result}
   end
 
   @doc false

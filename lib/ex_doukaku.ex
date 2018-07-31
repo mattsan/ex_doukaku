@@ -1,18 +1,38 @@
 defmodule ExDoukaku do
-  @moduledoc """
-  Documentation for Doukaku.
-  """
+  alias ExDoukaku.TestData
 
-  @doc """
-  Hello world.
+  def test(test_data, module, fun) when is_list(test_data) do
+    opts = [ordered: false, timeout: :infinity]
 
-  ## Examples
+    Task.Supervisor.async_stream(
+      ExDoukaku.TaskSupervisor,
+      test_data,
+      __MODULE__,
+      :test,
+      [module, fun],
+      opts
+    )
+    |> Enum.map(&elem(&1, 1))
+  end
 
-      iex> Doukaku.hello()
-      :world
+  def test(%TestData{number: number, src: src, expected: expected}, module, fun) do
+    result = apply(module, fun, [src])
 
-  """
-  def hello do
-    :world
+    view =
+      case result do
+        ^expected ->
+          IO.ANSI.format([:green, "passed", :reset])
+
+        actual ->
+          IO.ANSI.format([
+            :red,
+            "failed",
+            :reset,
+            "  input: '#{src}'  expected: '#{expected}'  actual: '#{actual}'"
+          ])
+      end
+
+    :io.format("~4b: ~s~n", [number, view])
+    {number, result}
   end
 end
