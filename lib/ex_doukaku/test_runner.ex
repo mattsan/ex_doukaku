@@ -8,7 +8,7 @@ defmodule ExDoukaku.TestRunner do
 
     quote do
       @before_compile ExDoukaku.TestRunner
-      import ExDoukaku.TestRunner, only: [test_data: 1]
+      import ExDoukaku.TestRunner, only: [c_styled_test_data: 1]
 
       @data []
 
@@ -45,7 +45,7 @@ defmodule ExDoukaku.TestRunner do
     end
   end
 
-  defmacro test_data(text) do
+  defmacro c_styled_test_data(text) do
     quote do
       @test_pattern ~r{/\*\s*(?<number>\d+)\s*\*/\s*test\s*\(\s*"(?<src>[^"]+)"\s*,\s*"(?<expected>[^"]+)"\s*\)}
 

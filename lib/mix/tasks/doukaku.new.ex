@@ -11,7 +11,7 @@ defmodule Mix.Tasks.Doukaku.New do
   defmodule <%= @module_name %>.TestRunner do
     use ExDoukaku.TestRunner, solver: [<%= @module_name %>.Solver, :solve]
 
-    @data """
+    c_styled_test_data """
       /* 0 */ test("abc", "abc");
     """
   end
