@@ -1,6 +1,4 @@
 defmodule ExDoukaku.TestRunner do
-  alias ExDoukaku.TestData
-
   defmacro __using__(opts) do
     [module, fun] = get_in(opts, [:solver])
 
@@ -8,18 +6,13 @@ defmodule ExDoukaku.TestRunner do
       @before_compile ExDoukaku.TestRunner
       import ExDoukaku.TestRunner, only: [c_styled_test_data: 1]
 
-      @data []
+      @c_styled_test_data []
 
       def run(options \\ []) do
         numbers = Keyword.get(options, :numbers, [])
+        data_source = Keyword.get(options, :data_source, :c_styled_test_data)
 
-        test_data =
-          case numbers do
-            [] -> data()
-            numbers -> data() |> Enum.filter(&(&1.number in numbers))
-          end
-
-        test_data
+        test_data(data_source, numbers)
         |> test()
         |> Enum.to_list()
       end
@@ -32,20 +25,26 @@ defmodule ExDoukaku.TestRunner do
 
   defmacro __before_compile__(_) do
     quote do
-      def data do
-        @data
+      def test_data(data_source, nil), do: test_data(data_source)
+      def test_data(data_source, []), do: test_data(data_source)
+
+      def test_data(data_source, numbers) do
+        test_data(data_source)
+        |> Enum.filter(&(&1.number in numbers))
+      end
+
+      def test_data(:c_styled_test_data), do: @c_styled_test_data
+
+      def test_data(json_file: filename) do
+        with {:ok, data} <- ExDoukaku.Data.load_json(filename),
+             do: data.test_data
       end
     end
   end
 
   defmacro c_styled_test_data(text) do
     quote do
-      @test_pattern ~r{/\*\s*(?<number>\d+)\s*\*/\s*test\s*\(\s*"(?<src>[^"]+)"\s*,\s*"(?<expected>[^"]+)"\s*\)}
-
-      @data unquote(text)
-            |> String.split("\n", trim: true)
-            |> Enum.map(&Regex.named_captures(@test_pattern, &1))
-            |> Enum.map(&TestData.new(String.to_integer(&1["number"]), &1["src"], &1["expected"]))
+      @c_styled_test_data ExDoukaku.TestData.CStyled.parse(unquote(text))
     end
   end
 end
