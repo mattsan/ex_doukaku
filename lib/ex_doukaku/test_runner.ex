@@ -34,11 +34,6 @@ defmodule ExDoukaku.TestRunner do
     end
   end
 
-  defmacro test_pattern do
-    quote do
-    end
-  end
-
   defmacro c_styled_test_data(text) do
     quote do
       @test_pattern ~r{/\*\s*(?<number>\d+)\s*\*/\s*test\s*\(\s*"(?<src>[^"]+)"\s*,\s*"(?<expected>[^"]+)"\s*\)}
