@@ -20,8 +20,12 @@ defmodule ExDoukaku.TestRunner do
           end
 
         test_data
-        |> ExDoukaku.test(unquote(module), unquote(fun))
+        |> test()
         |> Enum.to_list()
+      end
+
+      def test(test_data) do
+        ExDoukaku.test(test_data, unquote(module), unquote(fun))
       end
     end
   end
