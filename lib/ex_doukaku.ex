@@ -1,6 +1,8 @@
 defmodule ExDoukaku do
   alias ExDoukaku.TestData
 
+  import Mix.Generator, only: [embed_template: 2, embed_text: 2]
+
   def test(test_data, module, fun) when is_list(test_data) do
     opts = [ordered: false, timeout: :infinity]
 
@@ -15,24 +17,26 @@ defmodule ExDoukaku do
     |> Enum.map(&elem(&1, 1))
   end
 
-  def test(%TestData{number: number, src: src, expected: expected}, module, fun) do
+  def test(%TestData{number: number, src: src} = test_data, module, fun) do
     result = apply(module, fun, [src])
 
-    view =
-      case result do
-        ^expected ->
-          IO.ANSI.format([:green, "passed", :reset])
+    {judgement, message} = judge(test_data, result)
 
-        actual ->
-          IO.ANSI.format([
-            :red,
-            "failed",
-            :reset,
-            "  input: '#{src}'  expected: '#{expected}'  actual: '#{actual}'"
-          ])
-      end
+    IO.puts(String.pad_leading(to_string(number), 4, " ") <> ": " <> message)
 
-    :io.format("~4b: ~s~n", [number, view])
-    {number, result}
+    [test_data: test_data, result: result, judgement: judgement, message: message]
+  end
+
+  embed_text(:passed, to_string(IO.ANSI.format([:green, "passed", :reset])))
+  embed_template(:failed, to_string(IO.ANSI.format([:red, "failed", :reset, "  input: '<%= @src %>'  expected: '<%= @expected %>'  actual: '<%= @actual %>'"])))
+
+  defp judge(%TestData{src: src, expected: expected}, result) do
+    case result do
+      ^expected ->
+        {:passed, passed_text()}
+
+      actual ->
+        {:failed, failed_template(src: src, expected: expected, actual: actual)}
+    end
   end
 end
