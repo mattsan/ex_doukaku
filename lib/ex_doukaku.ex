@@ -17,26 +17,29 @@ defmodule ExDoukaku do
     |> Enum.map(&elem(&1, 1))
   end
 
-  def test(%TestData{number: number, src: src} = test_data, module, fun) do
-    result = apply(module, fun, [src])
 
-    {judgement, message} = judge(test_data, result)
+  def test(%TestData{src: src, expected: expected} = test_data, module, fun) do
+    actual = apply(module, fun, [src])
 
-    IO.puts(String.pad_leading(to_string(number), 4, " ") <> ": " <> message)
+    judgement =
+      case actual do
+        ^expected -> :passed
+        _ -> :failed
+      end
 
-    [test_data: test_data, result: result, judgement: judgement, message: message]
+    result = %{test_data: test_data, actual: actual, judgement: judgement}
+    show_result(result)
+    result
   end
 
   embed_text(:passed, to_string(IO.ANSI.format([:green, "passed", :reset])))
   embed_template(:failed, to_string(IO.ANSI.format([:red, "failed", :reset, "  input: '<%= @src %>'  expected: '<%= @expected %>'  actual: '<%= @actual %>'"])))
 
-  defp judge(%TestData{src: src, expected: expected}, result) do
-    case result do
-      ^expected ->
-        {:passed, passed_text()}
+  def show_result(%{test_data: %TestData{number: number, expected: expected}, actual: expected, judgement: :passed}) do
+    IO.puts(String.pad_leading(to_string(number), 4, " ") <> ": " <> passed_text())
+  end
 
-      actual ->
-        {:failed, failed_template(src: src, expected: expected, actual: actual)}
-    end
+  def show_result(%{test_data: %TestData{number: number, src: src, expected: expected}, actual: actual, judgement: :failed}) do
+    IO.puts(String.pad_leading(to_string(number), 4, " ") <> ": " <> failed_template(src: src, expected: expected, actual: actual))
   end
 end
