@@ -54,8 +54,17 @@ defmodule Mix.Tasks.Doukaku.Test do
 
   defp run_test(runner_module, options) do
     try do
-      inspector = &ExDoukaku.inspect_result/1
-      {:ok, apply(runner_module, :run, [put_in(options, [:inspector], inspector)])}
+      options = put_in(options[:inspector], &ExDoukaku.inspect_result/1)
+      options =
+        case pop_in(options[:json_file]) do
+          {nil, _} ->
+            options
+
+          {filename, next_options} ->
+            put_in(next_options[:data_source], [json_file: filename])
+        end
+
+      {:ok, apply(runner_module, :run, [options])}
     rescue
       e in [UndefinedFunctionError] ->
         {:error, message: "#{inspect(e.module)} don't  have #{e.function}/#{e.arity}"}

@@ -3,12 +3,14 @@ defmodule Mix.Tasks.Doukaku.Test.OptionParser do
 
   @options [
     runner: :string,
-    numbers: :string
+    numbers: :string,
+    json_file: :string
   ]
 
   @aliases [
     r: :runner,
-    n: :numbers
+    n: :numbers,
+    j: :json_file
   ]
 
   def parse(args) do
