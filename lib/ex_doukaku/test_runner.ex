@@ -9,12 +9,10 @@ defmodule ExDoukaku.TestRunner do
       @c_styled_test_data []
 
       def run(options \\ []) do
-        numbers = Keyword.get(options, :numbers, [])
-        data_source = Keyword.get(options, :data_source, :c_styled_test_data)
-
-        test_data(data_source, numbers)
+        inspector = Keyword.get(options, :inspector, & &1)
+        test_data(options)
         |> test()
-        |> Stream.map(&ExDoukaku.inspect_result/1)
+        |> Stream.map(inspector)
         |> Enum.to_list()
       end
 
@@ -26,20 +24,21 @@ defmodule ExDoukaku.TestRunner do
 
   defmacro __before_compile__(_) do
     quote do
-      def test_data(data_source, nil), do: test_data(data_source)
-      def test_data(data_source, []), do: test_data(data_source)
+      def test_data(options \\ []) when is_list(options) do
+        src =
+          case Keyword.get(options, :data_source, :c_styled_test_data) do
+            :c_styled_test_data ->
+              @c_styled_test_data
 
-      def test_data(data_source, numbers) do
-        test_data(data_source)
-        |> Enum.filter(&(&1.number in numbers))
-      end
+            [json_file: filename] ->
+              with {:ok, data} <- ExDoukaku.Data.load_json(filename),
+                   do: data.test_data
+          end
 
-      def test_data, do: test_data(:c_styled_test_data)
-      def test_data(:c_styled_test_data), do: @c_styled_test_data
-
-      def test_data(json_file: filename) do
-        with {:ok, data} <- ExDoukaku.Data.load_json(filename),
-             do: data.test_data
+        case Keyword.get(options, :numbers, []) do
+          [] -> src
+          numbers -> src |> Enum.filter(& &1.number in numbers)
+        end
       end
     end
   end

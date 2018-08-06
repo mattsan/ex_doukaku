@@ -54,7 +54,8 @@ defmodule Mix.Tasks.Doukaku.Test do
 
   defp run_test(runner_module, options) do
     try do
-      {:ok, apply(runner_module, :run, [options])}
+      inspector = &ExDoukaku.inspect_result/1
+      {:ok, apply(runner_module, :run, [put_in(options, [:inspector], inspector)])}
     rescue
       e in [UndefinedFunctionError] ->
         {:error, message: "#{inspect(e.module)} don't  have #{e.function}/#{e.arity}"}

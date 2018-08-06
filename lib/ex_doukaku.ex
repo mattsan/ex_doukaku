@@ -17,14 +17,7 @@ defmodule ExDoukaku do
 
   def test(%TestData{src: src, expected: expected} = test_data, module, fun) do
     actual = apply(module, fun, [src])
-
-    judgement =
-      case actual do
-        ^expected -> :passed
-        _ -> :failed
-      end
-
-    %{test_data: test_data, actual: actual, judgement: judgement}
+    %{test_data: test_data, actual: actual, passed: actual == expected}
   end
 
   import IO.ANSI, only: [format: 1]
@@ -32,16 +25,18 @@ defmodule ExDoukaku do
   @passed_format "~4b: #{format([:green, "passed", :reset])}~n"
   @failed_format "~4b: #{format([:red, "failed", :reset, "  input: ~s  expected: ~s,  actual: ~s"])}~n"
 
-  def inspect_result(%{judgement: :passed} = result) do
-    :io.format(@passed_format, [result.test_data.number])
-  end
+  def inspect_result(%{} = result) do
+    case result.passed do
+      true ->
+        :io.format(@passed_format, [result.test_data.number])
 
-  def inspect_result(%{judgement: :failed} = result) do
-    :io.format(@failed_format, [
-      result.test_data.number,
-      result.test_data.src,
-      result.test_data.expected,
-      result.actual
-    ])
+      false ->
+        :io.format(@failed_format, [
+          result.test_data.number,
+          result.test_data.src,
+          result.test_data.expected,
+          result.actual
+        ])
+    end
   end
 end
