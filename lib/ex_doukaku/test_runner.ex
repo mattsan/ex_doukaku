@@ -14,6 +14,7 @@ defmodule ExDoukaku.TestRunner do
 
         test_data(data_source, numbers)
         |> test()
+        |> Stream.map(&ExDoukaku.inspect_result/1)
         |> Enum.to_list()
       end
 
@@ -33,6 +34,7 @@ defmodule ExDoukaku.TestRunner do
         |> Enum.filter(&(&1.number in numbers))
       end
 
+      def test_data, do: test_data(:c_styled_test_data)
       def test_data(:c_styled_test_data), do: @c_styled_test_data
 
       def test_data(json_file: filename) do

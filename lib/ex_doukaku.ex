@@ -1,8 +1,6 @@
 defmodule ExDoukaku do
   alias ExDoukaku.TestData
 
-  import Mix.Generator, only: [embed_template: 2, embed_text: 2]
-
   def test(test_data, module, fun) when is_list(test_data) do
     opts = [ordered: false, timeout: :infinity]
 
@@ -14,9 +12,8 @@ defmodule ExDoukaku do
       [module, fun],
       opts
     )
-    |> Enum.map(&elem(&1, 1))
+    |> Stream.map(&elem(&1, 1))
   end
-
 
   def test(%TestData{src: src, expected: expected} = test_data, module, fun) do
     actual = apply(module, fun, [src])
@@ -27,19 +24,24 @@ defmodule ExDoukaku do
         _ -> :failed
       end
 
-    result = %{test_data: test_data, actual: actual, judgement: judgement}
-    show_result(result)
-    result
+    %{test_data: test_data, actual: actual, judgement: judgement}
   end
 
-  embed_text(:passed, to_string(IO.ANSI.format([:green, "passed", :reset])))
-  embed_template(:failed, to_string(IO.ANSI.format([:red, "failed", :reset, "  input: '<%= @src %>'  expected: '<%= @expected %>'  actual: '<%= @actual %>'"])))
+  import IO.ANSI, only: [format: 1]
 
-  def show_result(%{test_data: %TestData{number: number, expected: expected}, actual: expected, judgement: :passed}) do
-    IO.puts(String.pad_leading(to_string(number), 4, " ") <> ": " <> passed_text())
+  @passed_format "~4b: #{format([:green, "passed", :reset])}~n"
+  @failed_format "~4b: #{format([:red, "failed", :reset, "  input: ~s  expected: ~s,  actual: ~s"])}~n"
+
+  def inspect_result(%{judgement: :passed} = result) do
+    :io.format(@passed_format, [result.test_data.number])
   end
 
-  def show_result(%{test_data: %TestData{number: number, src: src, expected: expected}, actual: actual, judgement: :failed}) do
-    IO.puts(String.pad_leading(to_string(number), 4, " ") <> ": " <> failed_template(src: src, expected: expected, actual: actual))
+  def inspect_result(%{judgement: :failed} = result) do
+    :io.format(@failed_format, [
+      result.test_data.number,
+      result.test_data.src,
+      result.test_data.expected,
+      result.actual
+    ])
   end
 end
