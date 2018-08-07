@@ -1,6 +1,8 @@
 defmodule ExDoukaku do
   alias ExDoukaku.TestData
 
+  import IO.ANSI, only: [format: 1]
+
   def test(test_data, module, fun) when is_list(test_data) do
     opts = [ordered: false, timeout: :infinity]
 
@@ -16,11 +18,22 @@ defmodule ExDoukaku do
   end
 
   def test(%TestData{src: src, expected: expected} = test_data, module, fun) do
-    actual = apply(module, fun, [src])
-    %{test_data: test_data, actual: actual, passed: actual == expected}
+    try do
+      actual = apply(module, fun, [src])
+      %{test_data: test_data, actual: actual, passed: actual == expected}
+    rescue
+      e ->
+        stacktrace =
+          System.stacktrace()
+          |> Enum.take_while(& elem(&1, 0) != ExDoukaku)
+          |> Exception.format_stacktrace()
+          |> String.split("\n", trim: true)
+          |> Enum.map(& "          #{&1}")
+          |> Enum.join("\n")
+        actual = format([:red, "(", inspect(e.__struct__), ") ", Exception.message(e), "\n", stacktrace])
+        %{test_data: test_data, actual: actual, passed: false}
+    end
   end
-
-  import IO.ANSI, only: [format: 1]
 
   @passed_format "~4b: #{format([:green, "passed", :reset])}~n"
   @failed_format "~4b: #{format([:red, "failed", :reset, "  input: ~s  expected: ~s,  actual: ~s"])}~n"
