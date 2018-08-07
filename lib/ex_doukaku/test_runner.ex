@@ -10,6 +10,7 @@ defmodule ExDoukaku.TestRunner do
 
       def run(options \\ []) do
         inspector = Keyword.get(options, :inspector, & &1)
+
         test_data(options)
         |> test()
         |> Stream.map(inspector)
@@ -37,7 +38,7 @@ defmodule ExDoukaku.TestRunner do
 
         case Keyword.get(options, :numbers, []) do
           [] -> src
-          numbers -> src |> Enum.filter(& &1.number in numbers)
+          numbers -> src |> Enum.filter(&(&1.number in numbers))
         end
       end
     end

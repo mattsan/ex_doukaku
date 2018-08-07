@@ -55,13 +55,14 @@ defmodule Mix.Tasks.Doukaku.Test do
   defp run_test(runner_module, options) do
     try do
       options = put_in(options[:inspector], &ExDoukaku.inspect_result/1)
+
       options =
         case pop_in(options[:json_file]) do
           {nil, _} ->
             options
 
           {filename, next_options} ->
-            put_in(next_options[:data_source], [json_file: filename])
+            put_in(next_options[:data_source], json_file: filename)
         end
 
       {:ok, apply(runner_module, :run, [options])}

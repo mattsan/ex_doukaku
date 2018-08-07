@@ -25,12 +25,15 @@ defmodule ExDoukaku do
       e ->
         stacktrace =
           System.stacktrace()
-          |> Enum.take_while(& elem(&1, 0) != ExDoukaku)
+          |> Enum.take_while(&(elem(&1, 0) != ExDoukaku))
           |> Exception.format_stacktrace()
           |> String.split("\n", trim: true)
-          |> Enum.map(& "          #{&1}")
+          |> Enum.map(&"          #{&1}")
           |> Enum.join("\n")
-        actual = format([:red, "(", inspect(e.__struct__), ") ", Exception.message(e), "\n", stacktrace])
+
+        actual =
+          format([:red, "(", inspect(e.__struct__), ") ", Exception.message(e), "\n", stacktrace])
+
         %{test_data: test_data, actual: actual, passed: false}
     end
   end
