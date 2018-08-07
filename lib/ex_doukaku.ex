@@ -38,8 +38,15 @@ defmodule ExDoukaku do
     end
   end
 
-  @passed_format "~4b: #{format([:green, "passed", :reset])}~n"
-  @failed_format "~4b: #{format([:red, "failed", :reset, "  input: ~s  expected: ~s,  actual: ~s"])}~n"
+  @passed_format format(["~4b: ", :green, "passed", :reset, "~n"]) |> to_string()
+  @failed_format format([
+                   "~4b: ",
+                   :red,
+                   "failed",
+                   :reset,
+                   "  input: ~s  expected: ~s,  actual: ~s~n"
+                 ])
+                 |> to_string()
 
   def inspect_result(%{} = result) do
     case result.passed do
