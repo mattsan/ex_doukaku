@@ -1,6 +1,11 @@
 defmodule ExDoukaku.TestRunner do
   defmacro __using__(opts) do
-    [module, fun] = get_in(opts, [:solver])
+    [module, fun] =
+      case get_in(opts, [:solver]) do
+        nil -> [__MODULE__, :solve]
+        [m, f] -> [m, f]
+        f -> [__MODULE__, f]
+      end
 
     quote do
       @before_compile ExDoukaku.TestRunner
