@@ -39,36 +39,51 @@ defmodule Mix.Tasks.Doukaku.Test do
 
     setup(config)
 
-    runner_module =
-      case options[:runner] do
-        nil ->
+    if options[:runner] do
+      runner_module = Module.concat([options[:runner]])
+      if module_enabled?(runner_module) do
+        {:ok, runner_module}
+      else
+        {:error, message: "module #{inspect(runner_module)} don't  have run/1"}
+      end
+    else
+      app_module_name =
+        Mix.Project.config()[:app]
+        |> Atom.to_string()
+        |> Macro.camelize()
+
+      runner_module = Module.concat([app_module_name])
+
+      if module_enabled?(runner_module) do
+        {:ok, runner_module}
+      else
+        runner_module =
           Application.spec(config[:app], :modules)
           |> Enum.find(&(List.last(Module.split(&1)) == @test_runner_module_name))
 
-        runner_name ->
-          Module.concat([runner_name])
+        if module_enabled?(runner_module) do
+          {:ok, runner_module}
+        else
+          {:error, message: "module #{inspect(runner_module)} don't  have run/1"}
+        end
       end
-
-    {:ok, runner_module}
+    end
   end
 
+  defp module_enabled?(module), do: Code.ensure_loaded?(module) && function_exported?(module, :__info__, 1) && {:run, 1} in apply(module, :__info__, [:functions])
+
   defp run_test(runner_module, options) do
-    try do
-      options = put_in(options[:inspector], &ExDoukaku.inspect_result/1)
+    options = put_in(options[:inspector], &ExDoukaku.inspect_result/1)
 
-      options =
-        case pop_in(options[:json_file]) do
-          {nil, _} ->
-            options
+    options =
+      case pop_in(options[:json_file]) do
+        {nil, _} ->
+          options
 
-          {filename, next_options} ->
-            put_in(next_options[:data_source], json_file: filename)
-        end
+        {filename, next_options} ->
+          put_in(next_options[:data_source], json_file: filename)
+      end
 
-      {:ok, apply(runner_module, :run, [options])}
-    rescue
-      e in [UndefinedFunctionError] ->
-        {:error, message: "#{inspect(e.module)} don't  have #{e.function}/#{e.arity}"}
-    end
+    {:ok, apply(runner_module, :run, [options])}
   end
 end
