@@ -39,33 +39,27 @@ defmodule Mix.Tasks.Doukaku.Test do
 
     setup(config)
 
-    if options[:runner] do
-      runner_module = Module.concat([options[:runner]])
-      if module_enabled?(runner_module) do
-        {:ok, runner_module}
-      else
-        {:error, message: "module #{inspect(runner_module)} don't  have run/1"}
-      end
-    else
-      app_module_name =
-        Mix.Project.config()[:app]
-        |> Atom.to_string()
-        |> Macro.camelize()
-
-      runner_module = Module.concat([app_module_name])
-
-      if module_enabled?(runner_module) do
-        {:ok, runner_module}
-      else
-        runner_module =
-          Application.spec(config[:app], :modules)
-          |> Enum.find(&(List.last(Module.split(&1)) == @test_runner_module_name))
-
+    case option_test_runner_module(options) do
+      runner_module when not is_nil(runner_module) ->
         if module_enabled?(runner_module) do
           {:ok, runner_module}
         else
           {:error, message: "module #{inspect(runner_module)} don't  have run/1"}
         end
+
+      nil ->
+        runner_module = default_app_module()
+
+        if module_enabled?(runner_module) do
+          {:ok, runner_module}
+        else
+          runner_module = default_test_runner_module()
+
+          if module_enabled?(runner_module) do
+            {:ok, runner_module}
+          else
+            {:error, message: "module #{inspect(runner_module)} don't  have run/1"}
+          end
       end
     end
   end
@@ -85,5 +79,28 @@ defmodule Mix.Tasks.Doukaku.Test do
       end
 
     {:ok, apply(runner_module, :run, [options])}
+  end
+
+  defp option_test_runner_module(options) do
+    case options[:runner] do
+      nil -> nil
+      runner_name -> Module.concat([runner_name])
+    end
+  end
+
+  defp default_app_module do
+    app_module_name =
+      Mix.Project.config()[:app]
+      |> Atom.to_string()
+      |> Macro.camelize()
+
+    Module.concat([app_module_name])
+  end
+
+  defp default_test_runner_module do
+    config = Mix.Project.config()
+
+    Application.spec(config[:app], :modules)
+    |> Enum.find(&(List.last(Module.split(&1)) == @test_runner_module_name))
   end
 end
