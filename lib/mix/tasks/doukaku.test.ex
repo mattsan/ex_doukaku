@@ -64,7 +64,7 @@ defmodule Mix.Tasks.Doukaku.Test do
     end
   end
 
-  defp module_enabled?(module), do: Code.ensure_loaded?(module) && function_exported?(module, :__info__, 1) && {:run, 1} in apply(module, :__info__, [:functions])
+  defp module_enabled?(module), do: Code.ensure_loaded?(module) && function_exported?(module, :run, 1)
 
   defp run_test(runner_module, options) do
     options = put_in(options[:inspector], &ExDoukaku.inspect_result/1)
