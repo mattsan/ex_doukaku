@@ -1,12 +1,24 @@
 defmodule ExDoukaku.TestRunner do
   defmacro __using__(opts) do
-    [module, fun] = get_in(opts, [:solver])
-
     quote do
-      @before_compile ExDoukaku.TestRunner
       import ExDoukaku.TestRunner, only: [c_styled_test_data: 1]
 
+      @before_compile ExDoukaku.TestRunner
       @c_styled_test_data []
+
+      case get_in(unquote(opts), [:solver]) do
+        nil ->
+          @module __MODULE__
+          @fun :solve
+
+        [m, f] ->
+          @module m
+          @fun f
+
+        f ->
+          @module __MODULE__
+          @fun f
+      end
 
       def run(options \\ []) do
         inspector = Keyword.get(options, :inspector, & &1)
@@ -18,7 +30,7 @@ defmodule ExDoukaku.TestRunner do
       end
 
       def test(test_data) do
-        ExDoukaku.test(test_data, unquote(module), unquote(fun))
+        ExDoukaku.test(test_data, @module, @fun)
       end
     end
   end
