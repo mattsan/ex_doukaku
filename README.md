@@ -36,7 +36,7 @@ $ mix doukaku.new
 defmodule Sample.TestRunner do
   use ExDoukaku.TestRunner, solver: [Sample.Solver, :solve]
 
-  @data """
+  c_styled_test_data """
     /* 0 */ test("abc", "abc");
   """
 end
@@ -50,7 +50,7 @@ defmodule Sample.Solver do
 end
 ```
 
-提供されるテストデータを `test_runner.ex` の `@data` に貼り付けます。
+提供されるテストデータを `test_runner.ex` の `c_styled_test_data` に貼り付けます。
 
 ## 実行
 
@@ -67,10 +67,10 @@ Finished in 0.5 seconds
 
 テストに失敗した場合は入力と結果を表示します。
 
-例として `test_runner.ex` の `@data` を次のように編集します。
+例として `test_runner.ex` の `c_styled_test_data` を次のように編集します。
 
 ```elixir
-  @data """
+  c_styled_test_data """
     /* 0 */ test("abc", "abc");
     /* 1 */ test("def", "abc");
   """
